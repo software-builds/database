@@ -39,17 +39,17 @@ public class ReflectionHandler {
      * @return The sql-command to create the table with.
      */
     public String tableCreation() {
-        Set<Column> columnSet = getColumns();
+        final Set<Column> columnSet = getColumns();
 
         if (columnSet.size() == 0)
             throw new RuntimeException("Model cannot have 0 column annotations in model class. (" + modelClass.getSimpleName() + ")");
 
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
 
-        Iterator<Column> columnIterator = columnSet.iterator();
+        final Iterator<Column> columnIterator = columnSet.iterator();
         while (columnIterator.hasNext()) {
-            Column column = columnIterator.next();
-            String dataType = column.dataType().withSize(column.size());
+            final Column column = columnIterator.next();
+            final String dataType = column.dataType().withSize(column.size());
 
             builder.append(column.columnName()).append(" ").append(dataType);
 
@@ -73,11 +73,11 @@ public class ReflectionHandler {
      * @return All column annotation of the model class.
      */
     public Set<Column> getColumns() {
-        Set<Column> columnSet = new HashSet<>();
+        final Set<Column> columnSet = new HashSet<>();
 
-        for (Field field : modelClass.getDeclaredFields()) {
+        for (final Field field : modelClass.getDeclaredFields()) {
             if (field.isAnnotationPresent(Column.class)) {
-                Column column = field.getAnnotation(Column.class);
+                final Column column = field.getAnnotation(Column.class);
                 columnSet.add(column);
             }
         }

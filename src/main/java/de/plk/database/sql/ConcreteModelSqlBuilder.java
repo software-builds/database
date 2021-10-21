@@ -148,9 +148,9 @@ public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
 
     @Override
     public void runUpdate() {
-        Connection connection = pool.getConnection();
+        final Connection connection = pool.getConnection();
 
-        try (PreparedStatement statement = connection.prepareStatement(buildSQL())) {
+        try (final PreparedStatement statement = connection.prepareStatement(buildSQL())) {
             statement.executeUpdate();
         } catch (SQLException exception) {
             exception.printStackTrace();
@@ -165,10 +165,10 @@ public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
 
         try (PreparedStatement statement = connection.prepareStatement(buildSQL())) {
             Result result = () -> {
-                Map<String, Object> values = new HashMap<>();
+                final Map<String, Object> values = new HashMap<>();
 
                 // Get the result-set and put the queried columns to the map with each values.
-                ResultSet resultSet = statement.executeQuery();
+                final ResultSet resultSet = statement.executeQuery();
                 if (resultSet == null) return values;
 
                 if (resultSet.next()) {
@@ -191,7 +191,7 @@ public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
     }
 
     private String buildSQL() {
-        String tableName = handler.getTable().tableName();
+        final String tableName = handler.getTable().tableName();
         String command = commandType.getCommand();
 
         switch (commandType) {
@@ -200,24 +200,24 @@ public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
                 break;
 
             case SELECT:
-                String selectColumnList = String.join(", ", columns);
+                final String selectColumnList = String.join(", ", columns);
                 command = String.format(command, selectColumnList, tableName);
                 break;
 
             case INSERT:
-                String insertColumnList = String.join(", ", columns);
-                String[] stringValues = new String[columns.length];
+                final String insertColumnList = String.join(", ", columns);
+                final String[] stringValues = new String[columns.length];
 
                 for (int i = 0; i < values.length; i++) {
                     stringValues[i] = values[i].toString();
                 }
 
-                String insertValuesList = "'" + String.join("', '", stringValues) + "'";
+                final String insertValuesList = "'" + String.join("', '", stringValues) + "'";
                 command = String.format(command, tableName, insertColumnList, insertValuesList);
                 break;
 
             case UPDATE:
-                StringBuilder updateList = new StringBuilder();
+                final StringBuilder updateList = new StringBuilder();
 
                 for (int i = 0; i < columns.length; i++) {
                     updateList.append(columns[i])

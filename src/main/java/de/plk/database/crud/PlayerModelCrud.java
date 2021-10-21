@@ -38,7 +38,7 @@ public class PlayerModelCrud implements CrudInterface<UUID, PlayerModel> {
 
     @Override
     public PlayerModel read(UUID key) {
-        Map<String, Object> results = this.modelSqlBuilder.select("uuid", "name")
+        final Map<String, Object> results = this.modelSqlBuilder.select("uuid", "name")
                 .where("uuid", key.toString(), "LIKE")
                 .runQuery();
 
