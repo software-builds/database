@@ -32,7 +32,7 @@ public class DatabaseSource {
         if (properties.isEmpty())
             throw new RuntimeException("The properties file cannot be clear.");
 
-        final String[] requirements = databaseType.getRequirements();
+        String[] requirements = databaseType.getRequirements();
 
         // Declare the replacements array (Size of requirements).
         this.replacements = new String[requirements.length];

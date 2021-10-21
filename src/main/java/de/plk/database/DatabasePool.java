@@ -123,6 +123,7 @@ public class DatabasePool {
      */
     private void fill() {
         int difference = pool_size - POOL.size();
+
         for (int i = 0; i < difference; i++)
             POOL.push(createConnection());
     }

@@ -14,35 +14,47 @@ import java.util.Set;
  */
 public class ReflectionHandler {
 
+    /**
+     * The template sql-command to create a new table.
+     */
     private static final String SQL_TABLE_CREATION = "CREATE TABLE IF NOT EXISTS %s (%s);";
 
-    private final Class<? extends AbstractModel> model;
+    /**
+     * The class reference of the model we should handle with.
+     */
+    private final Class<? extends AbstractModel> modelClass;
 
-    public ReflectionHandler(Class<? extends AbstractModel> model) {
-        this.model = model;
+    /**
+     * Creates a new instance of this class.
+     *
+     * @param modelClass The class reference of the model we should handle with.
+     */
+    public ReflectionHandler(Class<? extends AbstractModel> modelClass) {
+        this.modelClass = modelClass;
     }
 
+    /**
+     * Returns the sql-command to create the table with.
+     *
+     * @return The sql-command to create the table with.
+     */
     public String tableCreation() {
         Set<Column> columnSet = getColumns();
 
         if (columnSet.size() == 0)
-            throw new RuntimeException("Model cannot have 0 column annotations.");
+            throw new RuntimeException("Model cannot have 0 column annotations in model class. (" + modelClass.getSimpleName() + ")");
 
         StringBuilder builder = new StringBuilder();
-        Iterator<Column> columnIterator = columnSet.iterator();
 
+        Iterator<Column> columnIterator = columnSet.iterator();
         while (columnIterator.hasNext()) {
             Column column = columnIterator.next();
-
             String dataType = column.dataType().withSize(column.size());
-            builder.append(column.columnName())
-                    .append(" ")
-                    .append(dataType);
 
-            if (column.primary()) {
-                builder.append(" ")
-                        .append("PRIMARY KEY");
-            }
+            builder.append(column.columnName()).append(" ").append(dataType);
+
+            if (column.primary())
+                builder.append(" ").append("PRIMARY KEY");
 
             builder.append(", ");
         }
@@ -55,10 +67,15 @@ public class ReflectionHandler {
         );
     }
 
+    /**
+     * Get all column annotation of the model class.
+     *
+     * @return All column annotation of the model class.
+     */
     public Set<Column> getColumns() {
-        final Set<Column> columnSet = new HashSet<>();
+        Set<Column> columnSet = new HashSet<>();
 
-        for (Field field : model.getDeclaredFields()) {
+        for (Field field : modelClass.getDeclaredFields()) {
             if (field.isAnnotationPresent(Column.class)) {
                 Column column = field.getAnnotation(Column.class);
                 columnSet.add(column);
@@ -68,11 +85,16 @@ public class ReflectionHandler {
         return columnSet;
     }
 
+    /**
+     * Get the table annotation of the model class.
+     *
+     * @return The table annotation of the model class.
+     */
     public Table getTable() {
-        if (!model.isAnnotationPresent(Table.class))
-            throw new RuntimeException("Class mus have an Table Annotation present.");
+        if (!modelClass.isAnnotationPresent(Table.class))
+            throw new RuntimeException("Model cannot have noone table annotation. (" + modelClass.getSimpleName() + ")");
 
-        return model.getAnnotation(Table.class);
+        return modelClass.getAnnotation(Table.class);
     }
 
 }

@@ -5,11 +5,8 @@ package de.plk.database.sql.type;
  */
 public enum ColumnDataType {
 
-    VARCHAR,
-    LONG,
-    TEXT,
-    INT,
-    BOOL;
+    VARCHAR, LONG,
+    TEXT, INT, BOOL;
 
     /**
      * Returns The length of the data-type.

@@ -1,34 +1,69 @@
 package de.plk.database.sql;
 
 import de.plk.database.DatabasePool;
-import de.plk.database.meta.Column;
-import de.plk.database.meta.Table;
+
 import de.plk.database.model.AbstractModel;
 import de.plk.database.sql.type.CommandType;
 
-import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+/**
+ * Represents the implementation from {@link ModelSqlBuilder} interface.
+ */
 public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
 
+    /**
+     * The database pool of {@link Connection}`s.
+     */
     private final DatabasePool pool;
 
+    /**
+     * The class reference of the model we should handle with.
+     */
     private final Class<? extends AbstractModel> modelClass;
 
+    /**
+     * The handler, who read the meta information (Annotations).
+     *
+     * This will return the information about the table
+     * and columns from the annotations.
+     */
     private final ReflectionHandler handler;
 
+    /**
+     * The command-type of this SQL-Command.
+     *
+     * e.g.: SELECT, UPDATE, DELETE, INSERT
+     */
     private CommandType commandType;
 
+    /**
+     * The columns you want to update.
+     */
     private String[] columns;
 
+    /**
+     * The values you want to update the columns with.
+     */
     private Object[] values;
 
+    /**
+     * The conditions for the sql-commands.
+     *
+     * synonyms: where-clausel
+     */
     private String where;
 
+    /**
+     * Creates a new instance of this class.
+     *
+     * @param pool       The database pool of {@link Connection}`s.
+     * @param modelClass The class reference of the model we should handle with.
+     */
     public ConcreteModelSqlBuilder(DatabasePool pool, Class<? extends AbstractModel> modelClass) {
         this.pool = pool;
         this.modelClass = modelClass;
@@ -47,7 +82,7 @@ public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
     @Override
     public ModelSqlBuilder update(String[] columns, Object[] values) {
         if (columns.length != values.length)
-            throw new IllegalArgumentException("The length of the parameter must be equal.");
+            throw new IllegalArgumentException("The length of the parameters must be have same size.");
 
         this.commandType = CommandType.UPDATE;
         this.columns = columns;
@@ -59,7 +94,7 @@ public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
     @Override
     public ModelSqlBuilder insert(String[] columns, Object[] values) {
         if (columns.length != values.length)
-            throw new IllegalArgumentException("The length of the parameter must be equal.");
+            throw new IllegalArgumentException("The length of the parameters must be have same size.");
 
         this.commandType = CommandType.INSERT;
         this.columns = columns;
@@ -130,8 +165,9 @@ public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
 
         try (PreparedStatement statement = connection.prepareStatement(buildSQL())) {
             Result result = () -> {
-                final Map<String, Object> values = new HashMap<>();
+                Map<String, Object> values = new HashMap<>();
 
+                // Get the result-set and put the queried columns to the map with each values.
                 ResultSet resultSet = statement.executeQuery();
                 if (resultSet == null) return values;
 
@@ -146,6 +182,7 @@ public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
 
             return result.getValues();
         } catch (SQLException exception) {
+            // Returns a clear hashmap, if this query will be interrupted.
             exception.printStackTrace();
             return new HashMap<>();
         } finally {
@@ -161,21 +198,24 @@ public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
             case DELETE:
                 command = String.format(command, tableName);
                 break;
+
             case SELECT:
                 String selectColumnList = String.join(", ", columns);
                 command = String.format(command, selectColumnList, tableName);
                 break;
+
             case INSERT:
                 String insertColumnList = String.join(", ", columns);
+                String[] stringValues = new String[columns.length];
 
-                String[] values2 = new String[columns.length];
                 for (int i = 0; i < values.length; i++) {
-                    values2[i] = values[i].toString();
+                    stringValues[i] = values[i].toString();
                 }
 
-                String insertValuesList = "'" + String.join("', '", Arrays.stream(values2).toArray(String[]::new)) + "'";
+                String insertValuesList = "'" + String.join("', '", stringValues) + "'";
                 command = String.format(command, tableName, insertColumnList, insertValuesList);
                 break;
+
             case UPDATE:
                 StringBuilder updateList = new StringBuilder();
 
@@ -188,7 +228,6 @@ public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
 
                 updateList.setLength(updateList.length() - 2);
                 command = String.format(tableName, updateList.toString());
-
                 break;
         }
 
