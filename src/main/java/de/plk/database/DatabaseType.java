@@ -9,6 +9,8 @@ public enum DatabaseType {
 
     /**
      * SQLite.
+     *
+     * @Todo Driver implementation.
      */
     SQLITE("sqlite:%s", "", new String[] {
             "database"

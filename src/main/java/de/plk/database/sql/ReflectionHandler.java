@@ -9,6 +9,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * Handles the reading of the annotation from the model classes.
+ */
 public class ReflectionHandler {
 
     private static final String SQL_TABLE_CREATION = "CREATE TABLE IF NOT EXISTS %s (%s);";

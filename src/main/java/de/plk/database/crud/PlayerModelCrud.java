@@ -4,44 +4,66 @@ import de.plk.database.DatabasePool;
 import de.plk.database.model.AbstractModel;
 import de.plk.database.model.PlayerModel;
 import de.plk.database.sql.ModelSqlBuilder;
-import de.plk.database.sql.ReflectionHandler;
-import de.plk.database.sql.Result;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * The CRUD-Implementation for the {@link PlayerModel}.
+ */
 public class PlayerModelCrud implements CrudInterface<UUID, PlayerModel> {
 
+    /**
+     * The Model-SQL builder for {@link PlayerModel}´s.
+     */
     private final ModelSqlBuilder modelSqlBuilder;
 
+    /**
+     * Creates a new instance of this class.
+     *
+     * @param pool The database pool.
+     */
     public PlayerModelCrud(DatabasePool pool) {
         this.modelSqlBuilder = AbstractModel.getModelSqlBuilder(PlayerModel.class, pool);
     }
 
     @Override
     public void create(PlayerModel model) {
-        this.modelSqlBuilder.insert(new String[]{"id", "name"}, new Object[]{model.getId(), model.getName()}).runUpdate();
+        this.modelSqlBuilder.insert(new String[]{
+                "uuid", "name"
+        }, new Object[]{
+                model.getUuid().toString(), model.getName()
+        }).runUpdate();
     }
 
     @Override
     public PlayerModel read(UUID key) {
-        Map<String, Object> result = this.modelSqlBuilder.select("id", "name").where("id", "2", "=").runQuery();
+        Map<String, Object> results = this.modelSqlBuilder.select("uuid", "name")
+                .where("uuid", key.toString(), "LIKE")
+                .runQuery();
 
-        return new PlayerModel((Integer) result.get("id"), (String) result.get("name"));
+        if (results.isEmpty()) {
+            create(new PlayerModel(key, ""));
+            return read(key);
+        }
 
+        // Return the object with specific databae data.
+        return new PlayerModel(UUID.fromString(
+                results.get("uuid").toString()
+        ), (String) results.get("name"));
     }
 
     @Override
     public void update(UUID key, PlayerModel model) {
-
+        this.modelSqlBuilder.update(new String[]{
+                "name"
+        }, new Object[]{
+                model.getName()
+        }).where("uuid", key.toString(), "LIKE").runUpdate();
     }
 
     @Override
     public void delete(UUID key) {
-        this.modelSqlBuilder.delete().where("id", "'2'", "=").runUpdate();
-
+        this.modelSqlBuilder.delete().where("uuid", key.toString(), "LILE").runUpdate();
     }
 }

@@ -18,7 +18,7 @@ public class DatabaseSource {
     private final DatabaseType databaseType;
 
     /**
-     *
+     * The replacements (inc. the credentials) for the database connection-URI.
      */
     private final String[] replacements;
 
@@ -32,7 +32,7 @@ public class DatabaseSource {
         if (properties.isEmpty())
             throw new RuntimeException("The properties file cannot be clear.");
 
-        String[] requirements = databaseType.getRequirements();
+        final String[] requirements = databaseType.getRequirements();
 
         // Declare the replacements array (Size of requirements).
         this.replacements = new String[requirements.length];
