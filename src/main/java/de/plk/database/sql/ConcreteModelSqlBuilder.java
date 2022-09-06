@@ -115,7 +115,11 @@ public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
             return this;
 
         String command = CommandType.WHERE.getCommand();
-        where = String.format(command, column, operand, needle);
+
+        if (operand == "LIKE")
+            needle = "'" + needle + "'";
+
+        where = String.format(command, column, operand, String.valueOf(needle));
 
         return this;
     }
@@ -222,17 +226,21 @@ public class ConcreteModelSqlBuilder implements ModelSqlBuilder {
                 for (int i = 0; i < columns.length; i++) {
                     updateList.append(columns[i])
                             .append(" = ")
-                            .append(String.valueOf(values[i]))
+                            .append(String.valueOf(values[i] instanceof String ? "'" + values[i] + "'" : values[i]))
                             .append(", ");
                 }
 
                 updateList.setLength(updateList.length() - 2);
-                command = String.format(tableName, updateList.toString());
+                command = String.format(command, tableName, updateList.toString());
                 break;
         }
 
         if (where != null)
             command += " " + where;
+
+        this.where = "";
+
+        System.out.println(command);
 
         return command += ";";
     }
